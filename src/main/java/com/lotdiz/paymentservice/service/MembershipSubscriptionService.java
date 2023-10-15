@@ -1,4 +1,4 @@
-package com.lotdiz.paymentservice.controller.service;
+package com.lotdiz.paymentservice.service;
 
 import com.lotdiz.paymentservice.respository.MembershipSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
