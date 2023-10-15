@@ -3,6 +3,7 @@ package com.lotdiz.paymentservice.service;
 import com.lotdiz.paymentservice.dto.response.KakaoPayApproveResponseDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayReadyResponseDto;
 import java.util.Map;
+import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,13 +17,16 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
-public class PaymentsService {
-    private final Logger logger = LoggerFactory.getLogger(PaymentsService.class);
+public class MembershipSubscriptionPaymentsService {
+    private final Logger logger = LoggerFactory.getLogger(MembershipSubscriptionPaymentsService.class);
+
+    private final MembershipSubscriptionService membershipSubscriptionService;
 
     @Value("${my.admin}")
     private String ADMIN_KEY;
 
     private KakaoPayReadyResponseDto kakaoReady;
+
 
     public KakaoPayReadyResponseDto ready(Map<String, Object> params) {
         MultiValueMap<String, Object> payParams = new LinkedMultiValueMap<>();
@@ -33,7 +37,7 @@ public class PaymentsService {
         payParams.add("quantity", params.get("quantity"));
         payParams.add("total_amount", params.get("total_amount"));
         payParams.add("tax_free_amount", params.get("tax_free_amount"));
-        payParams.add("approval_url", "http://localhost:8085/api/payments/success");
+        payParams.add("approval_url", "http://localhost:8085/api/payments/success/" + params.get("membership_id"));
         payParams.add("cancel_url", "http://localhost:8085/api/payments/cancel");
         payParams.add("fail_url", "http://localhost:8085/api/payments/fail");
 
@@ -47,7 +51,8 @@ public class PaymentsService {
         return kakaoReady;
     }
 
-    public KakaoPayApproveResponseDto approve(String pgToken) {
+    @Transactional
+    public KakaoPayApproveResponseDto approve(String pgToken, String membershipId) {
         MultiValueMap<String, Object> payParams = new LinkedMultiValueMap<>();
         payParams.add("cid", "TC0ONETIME");
         payParams.add("tid", kakaoReady.getTid());
@@ -60,6 +65,7 @@ public class PaymentsService {
         RestTemplate template = new RestTemplate();
         KakaoPayApproveResponseDto kakaoApprove = template.postForObject(url, requestEntity, KakaoPayApproveResponseDto.class);
 
+        membershipSubscriptionService.create(membershipId);
         return kakaoApprove;
     }
 
