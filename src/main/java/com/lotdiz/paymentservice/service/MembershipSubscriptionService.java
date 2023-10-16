@@ -8,12 +8,13 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class MembershipSubscriptionService {
-    private final MembershipSubscriptionRepository membershipSubscriptionRepository;
+  private final MembershipSubscriptionRepository membershipSubscriptionRepository;
 
-    public Long create(String membershipId) {
-        MembershipSubscription membershipSubscription = MembershipSubscription.builder()
-            .membershipId(Long.parseLong(membershipId))
-            .build();
-        return membershipSubscriptionRepository.save(membershipSubscription).getMembershipSubscriptionId();
-    }
+  public Long create(String membershipId) {
+    MembershipSubscription membershipSubscription =
+        MembershipSubscription.builder().membershipId(Long.parseLong(membershipId)).build();
+    return membershipSubscriptionRepository
+        .save(membershipSubscription)
+        .getMembershipSubscriptionId();
+  }
 }

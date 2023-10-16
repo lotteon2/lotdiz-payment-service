@@ -9,7 +9,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class KakaoPayReadyResponseDto {
-    private String tid; //결제 고유번호
-    private String next_redirect_pc_url;
-    private Date created_at;
+  private String tid; // 결제 고유번호
+  private String next_redirect_pc_url;
+  private Date created_at;
 }

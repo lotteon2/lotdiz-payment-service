@@ -47,7 +47,8 @@ public class MembershipSubscriptionPayments extends BaseEntity {
   @Column(name = "membership_subscription_payments_cid", nullable = false)
   private String membershipSubscriptionPaymentsCid; // 가맹점 코드
 
-  public static MembershipSubscriptionPayments create(String membershipSubscriptionId, KakaoPayApproveResponseDto kakaoApprove) {
+  public static MembershipSubscriptionPayments create(
+      String membershipSubscriptionId, KakaoPayApproveResponseDto kakaoApprove) {
     return MembershipSubscriptionPayments.builder()
         .membershipSubscriptionId(Long.valueOf(membershipSubscriptionId))
         .membershipSubscriptionPaymentsActualAmount(kakaoApprove.getAmount().getTotal())
@@ -56,5 +57,4 @@ public class MembershipSubscriptionPayments extends BaseEntity {
         .membershipSubscriptionPaymentsCid(kakaoApprove.getCid())
         .build();
   }
-
 }

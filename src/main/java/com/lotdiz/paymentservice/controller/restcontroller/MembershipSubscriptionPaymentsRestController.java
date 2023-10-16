@@ -23,28 +23,35 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class MembershipSubscriptionPaymentsRestController {
-    private final MembershipSubscriptionPaymentsService membershipSubscriptionPaymentsService;
-    private Logger logger = LoggerFactory.getLogger(MembershipSubscriptionPaymentsRestController.class);
+  private final MembershipSubscriptionPaymentsService membershipSubscriptionPaymentsService;
+  private Logger logger =
+      LoggerFactory.getLogger(MembershipSubscriptionPaymentsRestController.class);
 
-    @PostMapping ("/membership/payments/ready")
-    public ResultDataResponse<Map<String, Long>> kakaoPayReady(@RequestBody PaymentsInfoForKakoaPayRequestDto paymentsDto) {
-        Long membershipSubscriptionId = membershipSubscriptionPaymentsService.ready(paymentsDto);
-        logger.info("membershipSubscriptionId: " + membershipSubscriptionId);
-        Map<String, Long> map = new HashMap<>();
-        map.put("membershipSubscriptionId", membershipSubscriptionId);
+  @PostMapping("/membership/payments/ready")
+  public ResultDataResponse<Map<String, Long>> kakaoPayReady(
+      @RequestBody PaymentsInfoForKakoaPayRequestDto paymentsDto) {
+    Long membershipSubscriptionId = membershipSubscriptionPaymentsService.ready(paymentsDto);
+    Map<String, Long> map = new HashMap<>();
+    map.put("membershipSubscriptionId", membershipSubscriptionId);
 
-        return new ResultDataResponse<>(
-            "200",
-            HttpStatus.OK.name(),
-            "카카오페이 준비 요청 성공",
-            map
-        );
-    }
+    return new ResultDataResponse<>("200", HttpStatus.OK.name(), "카카오페이 준비 요청 성공", map);
+  }
 
-    @GetMapping("/payments/success/{membershipId}/{membershipSubscriptionId}")
-    public String kakaoPayApprove(@RequestParam("pg_token") String pgToken, @PathVariable("membershipId") String membershipId, @PathVariable("membershipSubscriptionId") String membershipSubscriptionId) {
-        membershipSubscriptionPaymentsService.approve(pgToken, membershipId, membershipSubscriptionId);
+  @GetMapping(
+      "/payments/success/{membershipId}/{membershipSubscriptionId}/{encodedPartnerOrderId}/{encodedPartnerUserId}")
+  public String kakaoPayApprove(
+      @RequestParam("pg_token") String pgToken,
+      @PathVariable("membershipId") String membershipId,
+      @PathVariable("membershipSubscriptionId") String membershipSubscriptionId,
+      @PathVariable("encodedPartnerOrderId") String encodedPartnerOrderId,
+      @PathVariable("encodedPartnerUserId") String encodedPartnerUserId) {
+    membershipSubscriptionPaymentsService.approve(
+        pgToken,
+        membershipId,
+        membershipSubscriptionId,
+        encodedPartnerOrderId,
+        encodedPartnerUserId);
 
-        return "카카오 결제 완료";
-    }
+    return "카카오 결제 완료";
+  }
 }

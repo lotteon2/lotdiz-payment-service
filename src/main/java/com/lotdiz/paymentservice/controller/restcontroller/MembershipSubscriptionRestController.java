@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class MembershipSubscriptionRestController {
-    private final MembershipSubscriptionService membershipSubscriptionService;
+  private final MembershipSubscriptionService membershipSubscriptionService;
 }

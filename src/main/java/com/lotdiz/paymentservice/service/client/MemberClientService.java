@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class MemberClientService {
-    private final MemberServiceClient memberServiceClient;
+  private final MemberServiceClient memberServiceClient;
 
-    public void assignCreatedAt(MembershipInfoForAssignRequestDto membershipAssignDto) {
-        memberServiceClient.assignCreatedAt(membershipAssignDto);
-    }
+  public void assignCreatedAt(MembershipInfoForAssignRequestDto membershipAssignDto) {
+    memberServiceClient.assignCreatedAt(membershipAssignDto);
+  }
 }

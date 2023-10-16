@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class MembershipInfoForAssignRequestDto {
-    private Long membershipId;
+  private Long membershipId;
 
-    private LocalDateTime createdAt;
+  private LocalDateTime createdAt;
 }
