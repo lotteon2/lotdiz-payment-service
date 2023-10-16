@@ -2,6 +2,7 @@ package com.lotdiz.paymentservice.entity;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
+import com.lotdiz.paymentservice.dto.response.KakaoPayApproveResponseDto;
 import com.lotdiz.paymentservice.entity.common.BaseEntity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -31,7 +32,7 @@ public class MembershipSubscriptionPayments extends BaseEntity {
   private Long membershipSubscriptionId;
 
   @Column(name = "membership_subscription_payments_actual_amount", nullable = false)
-  private Long membershipSubscriptionPaymentsActualAmount;
+  private Integer membershipSubscriptionPaymentsActualAmount;
 
   @Column(name = "membership_subscription_payments_type", nullable = false)
   @Builder.Default
@@ -45,4 +46,15 @@ public class MembershipSubscriptionPayments extends BaseEntity {
 
   @Column(name = "membership_subscription_payments_cid", nullable = false)
   private String membershipSubscriptionPaymentsCid; // 가맹점 코드
+
+  public static MembershipSubscriptionPayments create(String membershipSubscriptionId, KakaoPayApproveResponseDto kakaoApprove) {
+    return MembershipSubscriptionPayments.builder()
+        .membershipSubscriptionId(Long.valueOf(membershipSubscriptionId))
+        .membershipSubscriptionPaymentsActualAmount(kakaoApprove.getAmount().getTotal())
+        .membershipSubscriptionPaymentsStatus("진행")
+        .membershipSubscriptionPaymentsTid(kakaoApprove.getTid())
+        .membershipSubscriptionPaymentsCid(kakaoApprove.getCid())
+        .build();
+  }
+
 }

@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 public class MembershipSubscriptionService {
     private final MembershipSubscriptionRepository membershipSubscriptionRepository;
 
-    public void create(String membershipId) {
+    public Long create(String membershipId) {
         MembershipSubscription membershipSubscription = MembershipSubscription.builder()
             .membershipId(Long.parseLong(membershipId))
             .build();
-        membershipSubscriptionRepository.save(membershipSubscription);
+        return membershipSubscriptionRepository.save(membershipSubscription).getMembershipSubscriptionId();
     }
 }
