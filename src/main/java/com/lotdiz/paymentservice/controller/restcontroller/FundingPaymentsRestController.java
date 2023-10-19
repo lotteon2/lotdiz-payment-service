@@ -2,7 +2,7 @@ package com.lotdiz.paymentservice.controller.restcontroller;
 
 import com.lotdiz.paymentservice.dto.request.KakaoPayReadyRequestDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayReadyResponseDto;
-import com.lotdiz.paymentservice.service.KakaoPayService;
+import com.lotdiz.paymentservice.service.FundingPaymentsService;
 import com.lotdiz.paymentservice.utils.SuccessResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class KakaoPayRestController {
-  private final KakaoPayService kakaoPayService;
+public class FundingPaymentsRestController {
+  private final FundingPaymentsService fundingPaymentsService;
 
-  @PostMapping("/payments/ready")
+  @PostMapping("/funding/payments/ready")
   public ResponseEntity<SuccessResponse> createPayments(
       @RequestBody KakaoPayReadyRequestDto readyRequestDto) {
 
-    KakaoPayReadyResponseDto readyResponseDto = kakaoPayService.payReady(readyRequestDto);
+    KakaoPayReadyResponseDto readyResponseDto = fundingPaymentsService.payReady(readyRequestDto);
     log.info(readyResponseDto.getNext_redirect_pc_url());
     return ResponseEntity.ok()
         .body(

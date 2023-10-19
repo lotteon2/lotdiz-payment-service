@@ -8,9 +8,9 @@ import lombok.ToString;
 @Setter
 @ToString
 public class Amount {
-  private int total;
-  private int tax_free;
-  private int vat;
-  private int point;
-  private int discount;
+  private Integer total;
+  private Integer tax_free;
+  private Integer vat;
+  private Integer point;
+  private Integer discount;
 }

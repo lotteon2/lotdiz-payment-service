@@ -1,14 +1,9 @@
 package com.lotdiz.paymentservice.service;
 
 import com.lotdiz.paymentservice.dto.request.KakaoPayReadyRequestDto;
-import com.lotdiz.paymentservice.dto.response.KakaoPayApproveResponseDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayReadyResponseDto;
-import com.lotdiz.paymentservice.entity.FundingPayments;
 import com.lotdiz.paymentservice.repository.FundingPaymentsRepository;
 import com.lotdiz.paymentservice.service.client.KakaoPayServiceClient;
-import java.net.URLEncoder;
-import java.util.Base64;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -21,8 +16,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class KakaoPayService {
-    private final KakaoPayServiceClient kakaoPayServiceClient;
+public class FundingPaymentsService {
     private final FundingPaymentsRepository fundingPaymentsRepository;
 
     public KakaoPayReadyResponseDto payReady(KakaoPayReadyRequestDto kakaoPayReadyRequestDto){
