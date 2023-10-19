@@ -20,28 +20,27 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class FundingPayments extends BaseEntity {
-
   @Id
   @GeneratedValue(strategy = IDENTITY)
   @Column(name = "funding_payments_unique_id")
-  private Long membershipSubscriptionPaymentsUniqueId;
+  private Long fundingPaymentsUniqueId;
 
   @Column(name = "funding_id", nullable = false)
-  private Long membershipSubscriptionId;
+  private Long fundingId;
 
   @Column(name = "funding_payments_actual_amount", nullable = false)
-  private Long membershipSubscriptionPaymentsActualAmount;
+  private Long fundingPaymentsActualAmount;
 
   @Column(name = "funding_payments_type", nullable = false)
   @Builder.Default
-  private String membershipSubscriptionPaymentsType = "CARD";
+  private String fundingPaymentsType = "CARD";
 
   @Column(name = "funding_payments_status", nullable = false)
-  private String membershipSubscriptionPaymentsStatus;
+  private String fundingPaymentsStatus;
 
   @Column(name = "funding_payments_tid", nullable = false)
-  private String membershipSubscriptionPaymentsTid; // 결제 고유번호
+  private String fundingPaymentsTid; // 결제 고유번호
 
   @Column(name = "funding_payments_cid", nullable = false)
-  private String membershipSubscriptionPaymentsCid; // 가맹점 코드
+  private String fundingPaymentsCid; // 가맹점 코드
 }
