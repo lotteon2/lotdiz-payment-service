@@ -10,7 +10,8 @@
 
 <script>
   function requestPay() {
-    axios.post("api/pay/ready", {
+    axios.post("api/funding/payments/ready", {
+        funding_id: "1", // TODO: sfunding-service에서 넘겨주기
         cid: "TC0ONETIME",
         partner_order_id: "Lotdiz_ORDER_10000",
         partner_user_id: "Lotdiz_USER_1",

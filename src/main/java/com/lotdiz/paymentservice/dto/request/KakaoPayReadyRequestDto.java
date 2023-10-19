@@ -15,6 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class KakaoPayReadyRequestDto {
+  private Long funding_id;
   private String cid;
   private String partner_order_id;
   private String partner_user_id;
