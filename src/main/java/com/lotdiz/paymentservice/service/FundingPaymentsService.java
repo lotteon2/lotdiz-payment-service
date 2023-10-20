@@ -8,9 +8,11 @@ import com.lotdiz.paymentservice.entity.Kakaopay;
 import com.lotdiz.paymentservice.entity.PaymentsStatus;
 import com.lotdiz.paymentservice.repository.FundingPaymentsRepository;
 import com.lotdiz.paymentservice.repository.KakaopayRepository;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -25,12 +27,22 @@ public class FundingPaymentsService {
   private final FundingPaymentsRepository fundingPaymentsRepository;
   private final KakaopayRepository kakaopayRepository;
 
+  @Value("${my.admin}")
+  private String ADMIN_KEY;
+  @Value("${my.cid}")
+  private String CID;
+
   public KakaoPayReadyResponseDto payReady(KakaoPayReadyRequestDto kakaoPayReadyRequestDto) {
 
+    String prefix = "LOT_PARTNER";
+    String random = UUID.randomUUID().toString();
+    String partnerOrderId = prefix + "_ORDER_" + random;
+    String partnerUserId = prefix + "_USER_" + random;
+
     MultiValueMap<String, String> parameters = new LinkedMultiValueMap<String, String>();
-    parameters.add("cid", kakaoPayReadyRequestDto.getCid());
-    parameters.add("partner_order_id", kakaoPayReadyRequestDto.getPartner_order_id());
-    parameters.add("partner_user_id", kakaoPayReadyRequestDto.getPartner_user_id());
+    parameters.add("cid", CID);
+    parameters.add("partner_order_id", partnerOrderId);
+    parameters.add("partner_user_id", partnerUserId);
     parameters.add("item_name", kakaoPayReadyRequestDto.getItem_name());
     parameters.add("quantity", String.valueOf(kakaoPayReadyRequestDto.getQuantity()));
     parameters.add("total_amount", String.valueOf(kakaoPayReadyRequestDto.getTotal_amount()));
@@ -39,7 +51,7 @@ public class FundingPaymentsService {
         "approval_url",
         "http://localhost:8085/api/payments/completed"
             + "/"
-            + kakaoPayReadyRequestDto.getPartner_order_id()
+            + partnerOrderId
             + "/"
             + kakaoPayReadyRequestDto.getFunding_id());
     parameters.add("cancel_url", "http://localhost:8085/api/payments/cancel");
@@ -55,9 +67,9 @@ public class FundingPaymentsService {
 
     Kakaopay kakaopay =
         Kakaopay.builder()
-            .kakaoPayPartnerOrderId(kakaoPayReadyRequestDto.getPartner_order_id())
-            .kakaopayPartnerUserId(kakaoPayReadyRequestDto.getPartner_user_id())
-            .kakaopayCid(kakaoPayReadyRequestDto.getCid())
+            .kakaoPayPartnerOrderId(partnerOrderId)
+            .kakaopayPartnerUserId(partnerUserId)
+            .kakaopayCid(CID)
             .kakaopayTid(readyResponse.getTid())
             .build();
     kakaopayRepository.save(kakaopay);
@@ -100,9 +112,10 @@ public class FundingPaymentsService {
   @NotNull
   private HttpHeaders getHeaders() {
     HttpHeaders headers = new HttpHeaders();
-    headers.set("Authorization", "KakaoAK 98fead643b84b0ef981ed6b58ce58561");
-    headers.set("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
+    String auth = "KakaoAK " + ADMIN_KEY;
+    headers.set("Authorization", auth);
+    headers.set("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
     return headers;
   }
 }
