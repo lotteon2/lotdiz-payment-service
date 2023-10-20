@@ -38,19 +38,17 @@ public class MembershipSubscriptionPaymentsRestController {
   }
 
   @GetMapping(
-      "/payments/success/{membershipId}/{membershipSubscriptionId}/{encodedPartnerOrderId}/{encodedPartnerUserId}")
+      "/payments/success/{membershipId}/{membershipSubscriptionId}/{encodedPartnerOrderId}")
   public String kakaoPayApprove(
       @RequestParam("pg_token") String pgToken,
       @PathVariable("membershipId") String membershipId,
       @PathVariable("membershipSubscriptionId") String membershipSubscriptionId,
-      @PathVariable("encodedPartnerOrderId") String encodedPartnerOrderId,
-      @PathVariable("encodedPartnerUserId") String encodedPartnerUserId) {
+      @PathVariable("encodedPartnerOrderId") String encodedPartnerOrderId) {
     membershipSubscriptionPaymentsService.approve(
         pgToken,
         membershipId,
         membershipSubscriptionId,
-        encodedPartnerOrderId,
-        encodedPartnerUserId);
+        encodedPartnerOrderId);
 
     return "카카오 결제 완료";
   }
