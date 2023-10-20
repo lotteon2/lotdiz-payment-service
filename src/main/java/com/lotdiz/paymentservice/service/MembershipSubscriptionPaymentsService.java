@@ -77,7 +77,7 @@ public class MembershipSubscriptionPaymentsService {
     RestTemplate template = new RestTemplate();
     String url = "https://kapi.kakao.com/v1/payment/ready";
     kakaoReady = template.postForObject(url, requestEntity, KakaoPayReadyResponseDto.class);
-
+    logger.info(kakaoReady.getNext_redirect_pc_url());
     return membershipSubscriptionId;
   }
 
@@ -105,8 +105,12 @@ public class MembershipSubscriptionPaymentsService {
     RestTemplate template = new RestTemplate();
     KakaoPayApproveResponseDto kakaoApprove =
         template.postForObject(url, requestEntity, KakaoPayApproveResponseDto.class);
+
+    MembershipSubscriptionPayments memberSubscriptionPayments =
+        MembershipSubscriptionPayments.create(membershipSubscriptionId, kakaoApprove);
+
     MembershipSubscriptionPayments membershipSubscriptionPayments =
-        create(membershipSubscriptionId, kakaoApprove);
+        membershipSubscriptionPaymentsRepository.save(memberSubscriptionPayments);
 
     MembershipInfoForAssignRequestDto membershipAssignDto =
         MembershipInfoForAssignRequestDto.builder()
@@ -124,13 +128,5 @@ public class MembershipSubscriptionPaymentsService {
     headers.set("Authorization", auth);
     headers.set("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
     return headers;
-  }
-
-  public MembershipSubscriptionPayments create(
-      String membershipSubscriptionId, KakaoPayApproveResponseDto kakaoApprove) {
-    MembershipSubscriptionPayments memberSubscriptionPayments =
-        MembershipSubscriptionPayments.create(membershipSubscriptionId, kakaoApprove);
-
-    return membershipSubscriptionPaymentsRepository.save(memberSubscriptionPayments);
   }
 }
