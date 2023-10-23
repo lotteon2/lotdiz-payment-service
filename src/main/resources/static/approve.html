@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  결제 승인 요청 페이지!
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+
+  window.onload = function(){
+    approvePay();
+  }
+  function approvePay() {
+    const urlParams = new URL(location.href).searchParams;
+
+    const pgToken = urlParams.get('pg_token');
+    const partnerOrderId = urlParams.get('partner_order_id');
+    const partnerUserId = urlParams.get('partner_user_id');
+
+    axios.post("localhost:8082/api/projects/1/fundings", {
+      tid: window.localStorage.getItem("tid"),
+      pgToken: pgToken,
+      partnerOrderId: partnerOrderId,
+      partnerUserId: partnerUserId,
+      memberId: 1,
+      projectId: 1,
+      partnerOrderId: "Lotdiz_ORDER_10000",
+      partnerUserId: "Lotdiz_USER_1",
+      itemName: "[슈퍼얼리버드] 홍+청무화과 1kg 세트",
+      quantity: 3,
+      totalAmount: 74520,
+      taxFreeAmount: 0,
+    })
+    .then(function (response) {
+      console.log(response.data.detail);
+      location.href = response.data.data;
+    })
+    .catch(function (error) {
+      console.log(error.data);
+      alert(`Error occurred: ${error.message}`);
+    });
+  }
+</script>
+</body>
+</html>

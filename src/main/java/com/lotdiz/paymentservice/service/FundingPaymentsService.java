@@ -1,5 +1,6 @@
 package com.lotdiz.paymentservice.service;
 
+import com.lotdiz.paymentservice.dto.request.KakaoPayApproveRequestDto;
 import com.lotdiz.paymentservice.dto.request.KakaoPayReadyRequestDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayApproveResponseDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayReadyResponseDto;
@@ -29,8 +30,6 @@ public class FundingPaymentsService {
 
   @Value("${my.admin}")
   private String ADMIN_KEY;
-  @Value("${my.cid}")
-  private String CID;
 
   public KakaoPayReadyResponseDto payReady(KakaoPayReadyRequestDto kakaoPayReadyRequestDto) {
 
@@ -40,22 +39,20 @@ public class FundingPaymentsService {
     String partnerUserId = prefix + "_USER_" + random;
 
     MultiValueMap<String, String> parameters = new LinkedMultiValueMap<String, String>();
-    parameters.add("cid", CID);
+    parameters.add("cid", "TC0ONETIME");
     parameters.add("partner_order_id", partnerOrderId);
     parameters.add("partner_user_id", partnerUserId);
-    parameters.add("item_name", kakaoPayReadyRequestDto.getItem_name());
+    parameters.add("item_name", kakaoPayReadyRequestDto.getItemName());
     parameters.add("quantity", String.valueOf(kakaoPayReadyRequestDto.getQuantity()));
-    parameters.add("total_amount", String.valueOf(kakaoPayReadyRequestDto.getTotal_amount()));
-    parameters.add("tax_free_amount", String.valueOf(kakaoPayReadyRequestDto.getTax_free_amount()));
+    parameters.add("total_amount", String.valueOf(kakaoPayReadyRequestDto.getTotalAmount()));
+    parameters.add("tax_free_amount", String.valueOf(kakaoPayReadyRequestDto.getTaxFreeAmount()));
+
+    // TODO: 서비스 주소로 바꾸기.
     parameters.add(
         "approval_url",
-        "http://localhost:8085/api/payments/completed"
-            + "/"
-            + partnerOrderId
-            + "/"
-            + kakaoPayReadyRequestDto.getFunding_id());
-    parameters.add("cancel_url", "http://localhost:8085/api/payments/cancel");
-    parameters.add("fail_url", "http://localhost:8085/api/payments/fail");
+        "http://localhost:8085/payments/approve" + "/" + partnerOrderId + "/" + partnerUserId);
+    parameters.add("cancel_url", "http://localhost:8085/payments/cancel");
+    parameters.add("fail_url", "http://localhost:8085/payments/fail");
 
     HttpEntity<MultiValueMap<String, String>> requestEntity =
         new HttpEntity<>(parameters, this.getHeaders());
@@ -65,27 +62,17 @@ public class FundingPaymentsService {
     KakaoPayReadyResponseDto readyResponse =
         template.postForObject(url, requestEntity, KakaoPayReadyResponseDto.class);
 
-    Kakaopay kakaopay =
-        Kakaopay.builder()
-            .kakaoPayPartnerOrderId(partnerOrderId)
-            .kakaopayPartnerUserId(partnerUserId)
-            .kakaopayCid(CID)
-            .kakaopayTid(readyResponse.getTid())
-            .build();
-    kakaopayRepository.save(kakaopay);
-
     return readyResponse;
   }
 
-  public void payApprove(String pgToken, String partnerOrderId, Long fundingId) {
-    Kakaopay kakaopay = kakaopayRepository.findByKakaoPayPartnerOrderId(partnerOrderId);
-
+  public void payApprove(
+      KakaoPayApproveRequestDto approveRequestDto) {
     MultiValueMap<String, String> parameters = new LinkedMultiValueMap<String, String>();
-    parameters.add("cid", kakaopay.getKakaopayCid());
-    parameters.add("tid", kakaopay.getKakaopayTid());
-    parameters.add("partner_order_id", kakaopay.getKakaoPayPartnerOrderId());
-    parameters.add("partner_user_id", kakaopay.getKakaopayPartnerUserId());
-    parameters.add("pg_token", pgToken);
+    parameters.add("cid", "TC0ONETIME");
+    parameters.add("tid", approveRequestDto.getTid());
+    parameters.add("partner_order_id", approveRequestDto.getPartnerUserId());
+    parameters.add("partner_user_id", approveRequestDto.getPartnerUserId());
+    parameters.add("pg_token", approveRequestDto.getPgToken());
 
     HttpEntity<MultiValueMap<String, String>> requestEntity =
         new HttpEntity<>(parameters, this.getHeaders());
@@ -96,17 +83,27 @@ public class FundingPaymentsService {
     KakaoPayApproveResponseDto approveResponse =
         template.postForObject(url, requestEntity, KakaoPayApproveResponseDto.class);
 
+    // kakakopay 테이블에 정보 저장
+    Kakaopay kakaopay =
+        Kakaopay.builder()
+            .kakaopayCid("TC0ONETIME")
+            .kakaopayTid(approveRequestDto.getTid())
+            .kakaoPayPartnerOrderId(approveRequestDto.getPartnerOrderId())
+            .kakaopayPartnerUserId(approveRequestDto.getPartnerUserId())
+            .build();
+    Kakaopay savedKakaopay = kakaopayRepository.save(kakaopay);
+
     // FundingPayments에 정보 저장
     FundingPayments fundingPayments =
         FundingPayments.builder()
-            .fundingId(fundingId)
-            .kakaopay(kakaopay)
-            .fundingPaymentsType(approveResponse.getPayment_method_type())
+            .fundingId(approveRequestDto.getFundingId())
+            .kakaopay(savedKakaopay)
             .fundingPaymentsActualAmount(Long.valueOf(approveResponse.getAmount().getTotal()))
+            .fundingPaymentsType(approveResponse.getPayment_method_type())
             .fundingPaymentsStatus(PaymentsStatus.COMPLETED)
             .build();
-
     fundingPaymentsRepository.save(fundingPayments);
+
   }
 
   @NotNull

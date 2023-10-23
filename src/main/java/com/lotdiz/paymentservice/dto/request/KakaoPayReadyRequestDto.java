@@ -15,9 +15,9 @@ import lombok.Setter;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class KakaoPayReadyRequestDto {
-  private Long funding_id;
-  private String item_name;
+  // 나머지 정보는 결제 서비스에서 생성/수신한다.
+  private String itemName;
   private int quantity;
-  private int total_amount;
-  private int tax_free_amount;
+  private int totalAmount;
+  private int taxFreeAmount;
 }
