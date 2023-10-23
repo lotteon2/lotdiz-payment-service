@@ -1,9 +1,11 @@
 package com.lotdiz.paymentservice.service;
 
+import com.lotdiz.paymentservice.dto.request.KakaopayInfoForCreateRequestDto;
 import com.lotdiz.paymentservice.dto.request.MembershipInfoForAssignRequestDto;
 import com.lotdiz.paymentservice.dto.request.PaymentsInfoForKakoaPayRequestDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayApproveResponseDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayReadyResponseDto;
+import com.lotdiz.paymentservice.entity.Kakaopay;
 import com.lotdiz.paymentservice.entity.MembershipSubscriptionPayments;
 import com.lotdiz.paymentservice.respository.MembershipSubscriptionPaymentsRepository;
 import com.lotdiz.paymentservice.service.client.MemberClientService;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +25,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MembershipSubscriptionPaymentsService {
@@ -31,11 +35,10 @@ public class MembershipSubscriptionPaymentsService {
   private final MembershipSubscriptionPaymentsRepository membershipSubscriptionPaymentsRepository;
   private final MembershipSubscriptionService membershipSubscriptionService;
   private final MemberClientService memberClientService;
+  private final KakaopayService kakaopayService;
 
   @Value("${my.admin}")
   private String ADMIN_KEY;
-
-  private KakaoPayReadyResponseDto kakaoReady;
 
   @Transactional
   public Long ready(PaymentsInfoForKakoaPayRequestDto paymentsDto) {
@@ -66,9 +69,7 @@ public class MembershipSubscriptionPaymentsService {
             + "/"
             + membershipSubscriptionId
             + "/"
-            + encodedPartnerOrderId
-            + "/"
-            + encodedPartnerUserId);
+            + encodedPartnerOrderId);
     payParams.add("cancel_url", "http://localhost:8085/api/payments/cancel");
     payParams.add("fail_url", "http://localhost:8085/api/payments/fail");
 
@@ -76,7 +77,18 @@ public class MembershipSubscriptionPaymentsService {
 
     RestTemplate template = new RestTemplate();
     String url = "https://kapi.kakao.com/v1/payment/ready";
-    kakaoReady = template.postForObject(url, requestEntity, KakaoPayReadyResponseDto.class);
+    KakaoPayReadyResponseDto kakaoReady =
+        template.postForObject(url, requestEntity, KakaoPayReadyResponseDto.class);
+
+    log.info(kakaoReady.getNext_redirect_pc_url());
+    KakaopayInfoForCreateRequestDto kakaoInfoDto =
+        KakaopayInfoForCreateRequestDto.builder()
+            .kakaopayPartnerOrderId(partnerOrderId)
+            .kakaopayPartnerUserId(partnerUserId)
+            .kakaopayTid(kakaoReady.getTid())
+            .kakaopayCid("TC0ONETIME")
+            .build();
+    kakaopayService.createKakaopay(kakaoInfoDto);
 
     return membershipSubscriptionId;
   }
@@ -86,18 +98,16 @@ public class MembershipSubscriptionPaymentsService {
       String pgToken,
       String membershipId,
       String membershipSubscriptionId,
-      String encodedPartnerOrderId,
-      String encodedPartnerUserId) {
+      String encodedPartnerOrderId) {
     byte[] decodedOrderBytes = Base64.getDecoder().decode(encodedPartnerOrderId);
-    byte[] decodedUserBytes = Base64.getDecoder().decode(encodedPartnerUserId);
     String partnerOrderId = new String(decodedOrderBytes);
-    String partnerUserId = new String(decodedUserBytes);
 
+    Kakaopay kakaopay = kakaopayService.findKakaopayByKakaopayOrderId(partnerOrderId);
     MultiValueMap<String, Object> payParams = new LinkedMultiValueMap<>();
-    payParams.add("cid", "TC0ONETIME");
-    payParams.add("tid", kakaoReady.getTid());
+    payParams.add("cid", kakaopay.getKakaopayCid());
+    payParams.add("tid", kakaopay.getKakaopayTid());
     payParams.add("partner_order_id", partnerOrderId);
-    payParams.add("partner_user_id", partnerUserId);
+    payParams.add("partner_user_id", kakaopay.getKakaopayPartnerUserId());
     payParams.add("pg_token", pgToken);
 
     HttpEntity<Map> requestEntity = new HttpEntity<>(payParams, this.getHeaders());
