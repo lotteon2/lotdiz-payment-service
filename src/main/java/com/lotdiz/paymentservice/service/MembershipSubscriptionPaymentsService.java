@@ -4,6 +4,7 @@ import com.lotdiz.paymentservice.dto.request.KakaopayInfoForCreateRequestDto;
 import com.lotdiz.paymentservice.dto.request.MembershipInfoForAssignRequestDto;
 import com.lotdiz.paymentservice.dto.request.PaymentsInfoForKakoaPayRequestDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayApproveResponseDto;
+import com.lotdiz.paymentservice.dto.response.KakaoPayReadyForMemberResponseDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayReadyResponseDto;
 import com.lotdiz.paymentservice.entity.Kakaopay;
 import com.lotdiz.paymentservice.entity.MembershipSubscriptionPayments;
@@ -15,8 +16,6 @@ import java.util.UUID;
 import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -29,8 +28,6 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @RequiredArgsConstructor
 public class MembershipSubscriptionPaymentsService {
-  private final Logger logger =
-      LoggerFactory.getLogger(MembershipSubscriptionPaymentsService.class);
 
   private final MembershipSubscriptionPaymentsRepository membershipSubscriptionPaymentsRepository;
   private final MembershipSubscriptionService membershipSubscriptionService;
@@ -41,7 +38,7 @@ public class MembershipSubscriptionPaymentsService {
   private String ADMIN_KEY;
 
   @Transactional
-  public Long ready(PaymentsInfoForKakoaPayRequestDto paymentsDto) {
+  public KakaoPayReadyForMemberResponseDto ready(PaymentsInfoForKakoaPayRequestDto paymentsDto) {
     Long membershipSubscriptionId =
         membershipSubscriptionService.create(paymentsDto.getMembershipId());
     String prefix = "LOT_PARTNER";
@@ -50,9 +47,7 @@ public class MembershipSubscriptionPaymentsService {
     String partnerUserId = prefix + "_USER_" + random;
 
     byte[] orderBytes = partnerOrderId.getBytes();
-    byte[] userBytes = partnerUserId.getBytes();
     String encodedPartnerOrderId = Base64.getEncoder().encodeToString(orderBytes);
-    String encodedPartnerUserId = Base64.getEncoder().encodeToString(userBytes);
 
     MultiValueMap<String, Object> payParams = new LinkedMultiValueMap<>();
     payParams.add("cid", "TC0ONETIME"); // test payments use cid as "TC0ONETIME"
@@ -90,7 +85,12 @@ public class MembershipSubscriptionPaymentsService {
             .build();
     kakaopayService.createKakaopay(kakaoInfoDto);
 
-    return membershipSubscriptionId;
+    KakaoPayReadyForMemberResponseDto kakaoPayReadyForMemberDto =
+        KakaoPayReadyForMemberResponseDto.builder()
+            .next_redirect_pc_url(kakaoReady.getNext_redirect_pc_url())
+            .membershipSubscriptionId(membershipSubscriptionId)
+            .build();
+    return kakaoPayReadyForMemberDto;
   }
 
   @Transactional
@@ -115,6 +115,7 @@ public class MembershipSubscriptionPaymentsService {
     RestTemplate template = new RestTemplate();
     KakaoPayApproveResponseDto kakaoApprove =
         template.postForObject(url, requestEntity, KakaoPayApproveResponseDto.class);
+
     MembershipSubscriptionPayments membershipSubscriptionPayments =
         create(membershipSubscriptionId, kakaoApprove);
 
