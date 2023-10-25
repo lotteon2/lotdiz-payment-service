@@ -11,18 +11,18 @@
 <script>
   function requestPay() {
     axios.post("api/funding/payments/ready", {
-        funding_id: "1", // TODO: sfunding-service에서 넘겨주기
-        cid: "TC0ONETIME",
-        partner_order_id: "Lotdiz_ORDER_10000",
-        partner_user_id: "Lotdiz_USER_1",
-        item_name: "[슈퍼얼리버드] 홍+청무화과 1kg 세트",
+        partnerOrderId: "Lotdiz_ORDER_10000",
+        partnerUserId: "Lotdiz_USER_1",
+        itemName: "[슈퍼얼리버드] 홍+청무화과 1kg 세트",
         quantity: 3,
-        total_amount: 74520,
-        tax_free_amount: 0,
+        totalAmount: 74520,
+        taxFreeAmount: 0,
     })
     .then(function (response) {
-      console.log(response.data.data);
-      location.href = response.data.data;
+      console.log(response.data.next_redirect_pc_url);
+      window.localStorage.setItem("tid", response.data.tid);
+      window.open(response.data.next_redirect_pc_url)
+      // location.href = response.data.next_redirect_pc_url;
     })
     .catch(function (error) {
       console.log(error.data.data);
