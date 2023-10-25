@@ -38,15 +38,15 @@ spec:
               value: "11111111"
             - name: MYSQL_DATABASE
               value: payment-service
-          volumeMounts:
-            - name: lotdiz-storage
-              mountPath: /var/lib/mysql
           resources:
             requests:
               memory: "2Gi"
+          volumeMounts:
+            - name: lotdiz-payment-storage
+              mountPath: /var/lib/mysql
       volumes:
-        - name: lotdiz-storage
+        - name: lotdiz-payment-storage
           persistentVolumeClaim:
-            claimName: efs-claim
+            claimName: payment-efs-claim
       restartPolicy: Always
 
