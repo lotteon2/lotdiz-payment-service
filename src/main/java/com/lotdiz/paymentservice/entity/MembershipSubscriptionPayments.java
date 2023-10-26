@@ -8,6 +8,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,6 +41,10 @@ public class MembershipSubscriptionPayments extends BaseEntity {
 
   @Column(name = "membership_subscription_payments_status", nullable = false)
   private String membershipSubscriptionPaymentsStatus;
+
+  @OneToOne
+  @JoinColumn(name = "kakaopay_id")
+  private Kakaopay kakaopay;
 
   public static MembershipSubscriptionPayments create(
       String membershipSubscriptionId, KakaoPayApproveResponseDto kakaoApprove) {
