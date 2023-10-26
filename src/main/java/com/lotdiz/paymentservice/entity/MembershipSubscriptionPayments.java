@@ -29,9 +29,6 @@ public class MembershipSubscriptionPayments extends BaseEntity {
   @Column(name = "membership_subscription_payments_unique_id")
   private Long membershipSubscriptionPaymentsUniqueId;
 
-  @Column(name = "membership_subscription_id", nullable = false)
-  private Long membershipSubscriptionId;
-
   @Column(name = "membership_subscription_payments_actual_amount", nullable = false)
   private Integer membershipSubscriptionPaymentsActualAmount;
 
@@ -43,15 +40,20 @@ public class MembershipSubscriptionPayments extends BaseEntity {
   private String membershipSubscriptionPaymentsStatus;
 
   @OneToOne
+  @JoinColumn(name = "membership_subscription_id", nullable = false)
+  private MembershipSubscription membershipSubscription;
+
+  @OneToOne
   @JoinColumn(name = "kakaopay_id")
   private Kakaopay kakaopay;
 
   public static MembershipSubscriptionPayments create(
-      String membershipSubscriptionId, KakaoPayApproveResponseDto kakaoApprove) {
+      MembershipSubscription membershipSubscription, KakaoPayApproveResponseDto kakaoApprove, Kakaopay kakaopay) {
     return MembershipSubscriptionPayments.builder()
-        .membershipSubscriptionId(Long.valueOf(membershipSubscriptionId))
+        .membershipSubscription(membershipSubscription)
         .membershipSubscriptionPaymentsActualAmount(kakaoApprove.getAmount().getTotal())
         .membershipSubscriptionPaymentsStatus("진행")
+        .kakaopay(kakaopay)
         .build();
   }
 }

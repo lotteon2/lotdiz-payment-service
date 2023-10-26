@@ -17,4 +17,8 @@ public class MembershipSubscriptionService {
         .save(membershipSubscription)
         .getMembershipSubscriptionId();
   }
+
+  public MembershipSubscription findByMembershipSubscriptionId(Long membershipSubscriptionId) {
+    return membershipSubscriptionRepository.findByMembershipSubscriptionId(membershipSubscriptionId);
+  }
 }

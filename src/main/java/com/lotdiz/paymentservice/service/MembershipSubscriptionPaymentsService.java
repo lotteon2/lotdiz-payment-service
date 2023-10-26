@@ -7,6 +7,7 @@ import com.lotdiz.paymentservice.dto.response.KakaoPayApproveResponseDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayReadyForMemberResponseDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayReadyResponseDto;
 import com.lotdiz.paymentservice.entity.Kakaopay;
+import com.lotdiz.paymentservice.entity.MembershipSubscription;
 import com.lotdiz.paymentservice.entity.MembershipSubscriptionPayments;
 import com.lotdiz.paymentservice.respository.MembershipSubscriptionPaymentsRepository;
 import com.lotdiz.paymentservice.service.client.MemberClientService;
@@ -116,8 +117,9 @@ public class MembershipSubscriptionPaymentsService {
     KakaoPayApproveResponseDto kakaoApprove =
         template.postForObject(url, requestEntity, KakaoPayApproveResponseDto.class);
 
+    MembershipSubscription membershipSubscription = membershipSubscriptionService.findByMembershipSubscriptionId(Long.valueOf(membershipSubscriptionId));
     MembershipSubscriptionPayments membershipSubscriptionPayments =
-        create(membershipSubscriptionId, kakaoApprove);
+        create(membershipSubscription, kakaoApprove, kakaopay);
 
     MembershipInfoForAssignRequestDto membershipAssignDto =
         MembershipInfoForAssignRequestDto.builder()
@@ -138,9 +140,9 @@ public class MembershipSubscriptionPaymentsService {
   }
 
   public MembershipSubscriptionPayments create(
-      String membershipSubscriptionId, KakaoPayApproveResponseDto kakaoApprove) {
+      MembershipSubscription membershipSubscription, KakaoPayApproveResponseDto kakaoApprove, Kakaopay kakaopay) {
     MembershipSubscriptionPayments memberSubscriptionPayments =
-        MembershipSubscriptionPayments.create(membershipSubscriptionId, kakaoApprove);
+        MembershipSubscriptionPayments.create(membershipSubscription, kakaoApprove, kakaopay);
 
     return membershipSubscriptionPaymentsRepository.save(memberSubscriptionPayments);
   }
