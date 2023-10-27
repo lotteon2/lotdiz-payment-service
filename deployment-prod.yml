@@ -40,7 +40,7 @@ spec:
               value: payment-service
           resources:
             requests:
-              memory: "2Gi"
+              memory: "1Gi"
           volumeMounts:
             - name: lotdiz-payment-storage
               mountPath: /var/lib/mysql
