@@ -38,6 +38,8 @@ spec:
               value: "11111111"
             - name: MYSQL_DATABASE
               value: payment-service
+            - name: LC_ALL
+              value: C.UTF-8
           resources:
             requests:
               memory: "1Gi"
