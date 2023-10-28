@@ -8,6 +8,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,9 +29,6 @@ public class MembershipSubscriptionPayments extends BaseEntity {
   @Column(name = "membership_subscription_payments_unique_id")
   private Long membershipSubscriptionPaymentsUniqueId;
 
-  @Column(name = "membership_subscription_id", nullable = false)
-  private Long membershipSubscriptionId;
-
   @Column(name = "membership_subscription_payments_actual_amount", nullable = false)
   private Integer membershipSubscriptionPaymentsActualAmount;
 
@@ -40,20 +39,21 @@ public class MembershipSubscriptionPayments extends BaseEntity {
   @Column(name = "membership_subscription_payments_status", nullable = false)
   private String membershipSubscriptionPaymentsStatus;
 
-  @Column(name = "membership_subscription_payments_tid", nullable = false)
-  private String membershipSubscriptionPaymentsTid; // 결제 고유번호
+  @OneToOne
+  @JoinColumn(name = "membership_subscription_id", nullable = false)
+  private MembershipSubscription membershipSubscription;
 
-  @Column(name = "membership_subscription_payments_cid", nullable = false)
-  private String membershipSubscriptionPaymentsCid; // 가맹점 코드
+  @OneToOne
+  @JoinColumn(name = "kakaopay_id")
+  private Kakaopay kakaopay;
 
   public static MembershipSubscriptionPayments create(
-      String membershipSubscriptionId, KakaoPayApproveResponseDto kakaoApprove) {
+      MembershipSubscription membershipSubscription, KakaoPayApproveResponseDto kakaoApprove, Kakaopay kakaopay) {
     return MembershipSubscriptionPayments.builder()
-        .membershipSubscriptionId(Long.valueOf(membershipSubscriptionId))
+        .membershipSubscription(membershipSubscription)
         .membershipSubscriptionPaymentsActualAmount(kakaoApprove.getAmount().getTotal())
         .membershipSubscriptionPaymentsStatus("진행")
-        .membershipSubscriptionPaymentsTid(kakaoApprove.getTid())
-        .membershipSubscriptionPaymentsCid(kakaoApprove.getCid())
+        .kakaopay(kakaopay)
         .build();
   }
 }

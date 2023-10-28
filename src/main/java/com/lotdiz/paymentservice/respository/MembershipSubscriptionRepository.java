@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MembershipSubscriptionRepository
-    extends JpaRepository<MembershipSubscription, Long> {}
+    extends JpaRepository<MembershipSubscription, Long> {
+
+  MembershipSubscription findByMembershipSubscriptionId(Long membershipSubscriptionId);
+}
