@@ -30,6 +30,8 @@ public class FundingPaymentsService {
 
   @Value("${my.admin}")
   private String ADMIN_KEY;
+  @Value("${server.host.front}")
+  private String FRONT_URL;
 
   public KakaoPayReadyResponseDto payReady(KakaoPayReadyRequestDto kakaoPayReadyRequestDto) {
 
@@ -50,9 +52,9 @@ public class FundingPaymentsService {
     // TODO: 서비스 주소로 바꾸기.
     parameters.add(
         "approval_url",
-        "http://localhost:8085/payments/approve" + "/" + partnerOrderId + "/" + partnerUserId);
-    parameters.add("cancel_url", "http://localhost:8085/payments/cancel");
-    parameters.add("fail_url", "http://localhost:8085/payments/fail");
+            FRONT_URL+"/payments/approve" + "/" + partnerOrderId + "/" + partnerUserId);
+    parameters.add("cancel_url", FRONT_URL+"/payments/cancel");
+    parameters.add("fail_url", FRONT_URL+"/payments/fail");
 
     HttpEntity<MultiValueMap<String, String>> requestEntity =
         new HttpEntity<>(parameters, this.getHeaders());
@@ -70,7 +72,7 @@ public class FundingPaymentsService {
     MultiValueMap<String, String> parameters = new LinkedMultiValueMap<String, String>();
     parameters.add("cid", "TC0ONETIME");
     parameters.add("tid", approveRequestDto.getTid());
-    parameters.add("partner_order_id", approveRequestDto.getPartnerUserId());
+    parameters.add("partner_order_id", approveRequestDto.getPartnerOrderId());
     parameters.add("partner_user_id", approveRequestDto.getPartnerUserId());
     parameters.add("pg_token", approveRequestDto.getPgToken());
 
