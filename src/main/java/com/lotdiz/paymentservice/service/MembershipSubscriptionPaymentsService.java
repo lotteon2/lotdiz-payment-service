@@ -38,6 +38,9 @@ public class MembershipSubscriptionPaymentsService {
   @Value("${my.admin}")
   private String ADMIN_KEY;
 
+  @Value("${endpoint.apigateway-service}")
+  private String APIGATEWAY_SERVICE_URL;
+
   @Transactional
   public KakaoPayReadyForMemberResponseDto ready(PaymentsInfoForKakoaPayRequestDto paymentsDto) {
     Long membershipSubscriptionId =
@@ -60,14 +63,14 @@ public class MembershipSubscriptionPaymentsService {
     payParams.add("tax_free_amount", paymentsDto.getTaxFreeAmount());
     payParams.add(
         "approval_url",
-        "http://localhost:8085/api/payments/success/"
+        String.format("%s/payment-service/api/payments/success/", APIGATEWAY_SERVICE_URL)
             + paymentsDto.getMembershipId()
             + "/"
             + membershipSubscriptionId
             + "/"
             + encodedPartnerOrderId);
-    payParams.add("cancel_url", "http://localhost:8085/api/payments/cancel");
-    payParams.add("fail_url", "http://localhost:8085/api/payments/fail");
+    payParams.add("cancel_url", String.format("%s/payment-service/api/payments/cancel", APIGATEWAY_SERVICE_URL));
+    payParams.add("fail_url", String.format("%s/payment-service/api/payments/fail", APIGATEWAY_SERVICE_URL));
 
     HttpEntity<Map> requestEntity = new HttpEntity<>(payParams, this.getHeaders());
 
