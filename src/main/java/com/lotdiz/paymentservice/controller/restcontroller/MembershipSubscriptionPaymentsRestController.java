@@ -48,7 +48,7 @@ public class MembershipSubscriptionPaymentsRestController {
       throws IOException {
     membershipSubscriptionPaymentsService.approve(
         pgToken, membershipId, membershipSubscriptionId, encodedPartnerOrderId);
-    response.sendRedirect("http://localhost:5173");
+    response.sendRedirect("http://localhost:5173/member/membership-honors/join/success");
     return ResponseEntity.ok()
         .body(
             new ResultDataResponse<>(
