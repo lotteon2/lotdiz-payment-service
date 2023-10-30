@@ -73,6 +73,7 @@ public class MembershipSubscriptionPaymentsService {
 
     RestTemplate template = new RestTemplate();
     String url = "https://kapi.kakao.com/v1/payment/ready";
+
     KakaoPayReadyResponseDto kakaoReady =
         template.postForObject(url, requestEntity, KakaoPayReadyResponseDto.class);
 
