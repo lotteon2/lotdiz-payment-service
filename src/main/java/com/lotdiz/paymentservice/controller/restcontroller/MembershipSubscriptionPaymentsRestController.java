@@ -7,6 +7,7 @@ import com.lotdiz.paymentservice.service.MembershipSubscriptionPaymentsService;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class MembershipSubscriptionPaymentsRestController {
   private final MembershipSubscriptionPaymentsService membershipSubscriptionPaymentsService;
+
+  @Value("${server.host.front}")
+  private String FRONTEND_HOST_URL;
 
   @PostMapping("/membership/payments/ready")
   public ResponseEntity<ResultDataResponse<KakaoPayReadyForMemberResponseDto>> kakaoPayReady(
@@ -48,7 +52,7 @@ public class MembershipSubscriptionPaymentsRestController {
       throws IOException {
     membershipSubscriptionPaymentsService.approve(
         pgToken, membershipId, membershipSubscriptionId, encodedPartnerOrderId);
-    response.sendRedirect("http://localhost:5173/member/membership-honors/join/success");
+    response.sendRedirect(String.format("%s/member/membership-honors/join/success", FRONTEND_HOST_URL));
     return ResponseEntity.ok()
         .body(
             new ResultDataResponse<>(
