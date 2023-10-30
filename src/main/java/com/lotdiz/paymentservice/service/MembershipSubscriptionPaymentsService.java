@@ -1,9 +1,13 @@
 package com.lotdiz.paymentservice.service;
 
+import com.lotdiz.paymentservice.dto.request.KakaopayInfoForCreateRequestDto;
 import com.lotdiz.paymentservice.dto.request.MembershipInfoForAssignRequestDto;
 import com.lotdiz.paymentservice.dto.request.PaymentsInfoForKakoaPayRequestDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayApproveResponseDto;
+import com.lotdiz.paymentservice.dto.response.KakaoPayReadyForMemberResponseDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayReadyResponseDto;
+import com.lotdiz.paymentservice.entity.Kakaopay;
+import com.lotdiz.paymentservice.entity.MembershipSubscription;
 import com.lotdiz.paymentservice.entity.MembershipSubscriptionPayments;
 import com.lotdiz.paymentservice.respository.MembershipSubscriptionPaymentsRepository;
 import com.lotdiz.paymentservice.service.client.MemberClientService;
@@ -12,8 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -22,23 +25,21 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MembershipSubscriptionPaymentsService {
-  private final Logger logger =
-      LoggerFactory.getLogger(MembershipSubscriptionPaymentsService.class);
 
   private final MembershipSubscriptionPaymentsRepository membershipSubscriptionPaymentsRepository;
   private final MembershipSubscriptionService membershipSubscriptionService;
   private final MemberClientService memberClientService;
+  private final KakaopayService kakaopayService;
 
   @Value("${my.admin}")
   private String ADMIN_KEY;
 
-  private KakaoPayReadyResponseDto kakaoReady;
-
   @Transactional
-  public Long ready(PaymentsInfoForKakoaPayRequestDto paymentsDto) {
+  public KakaoPayReadyForMemberResponseDto ready(PaymentsInfoForKakoaPayRequestDto paymentsDto) {
     Long membershipSubscriptionId =
         membershipSubscriptionService.create(paymentsDto.getMembershipId());
     String prefix = "LOT_PARTNER";
@@ -47,9 +48,7 @@ public class MembershipSubscriptionPaymentsService {
     String partnerUserId = prefix + "_USER_" + random;
 
     byte[] orderBytes = partnerOrderId.getBytes();
-    byte[] userBytes = partnerUserId.getBytes();
     String encodedPartnerOrderId = Base64.getEncoder().encodeToString(orderBytes);
-    String encodedPartnerUserId = Base64.getEncoder().encodeToString(userBytes);
 
     MultiValueMap<String, Object> payParams = new LinkedMultiValueMap<>();
     payParams.add("cid", "TC0ONETIME"); // test payments use cid as "TC0ONETIME"
@@ -66,9 +65,7 @@ public class MembershipSubscriptionPaymentsService {
             + "/"
             + membershipSubscriptionId
             + "/"
-            + encodedPartnerOrderId
-            + "/"
-            + encodedPartnerUserId);
+            + encodedPartnerOrderId);
     payParams.add("cancel_url", "http://localhost:8085/api/payments/cancel");
     payParams.add("fail_url", "http://localhost:8085/api/payments/fail");
 
@@ -76,9 +73,26 @@ public class MembershipSubscriptionPaymentsService {
 
     RestTemplate template = new RestTemplate();
     String url = "https://kapi.kakao.com/v1/payment/ready";
-    kakaoReady = template.postForObject(url, requestEntity, KakaoPayReadyResponseDto.class);
-    logger.info(kakaoReady.getNext_redirect_pc_url());
-    return membershipSubscriptionId;
+
+    KakaoPayReadyResponseDto kakaoReady =
+        template.postForObject(url, requestEntity, KakaoPayReadyResponseDto.class);
+
+    log.info(kakaoReady.getNext_redirect_pc_url());
+    KakaopayInfoForCreateRequestDto kakaoInfoDto =
+        KakaopayInfoForCreateRequestDto.builder()
+            .kakaopayPartnerOrderId(partnerOrderId)
+            .kakaopayPartnerUserId(partnerUserId)
+            .kakaopayTid(kakaoReady.getTid())
+            .kakaopayCid("TC0ONETIME")
+            .build();
+    kakaopayService.createKakaopay(kakaoInfoDto);
+
+    KakaoPayReadyForMemberResponseDto kakaoPayReadyForMemberDto =
+        KakaoPayReadyForMemberResponseDto.builder()
+            .next_redirect_pc_url(kakaoReady.getNext_redirect_pc_url())
+            .membershipSubscriptionId(membershipSubscriptionId)
+            .build();
+    return kakaoPayReadyForMemberDto;
   }
 
   @Transactional
@@ -86,18 +100,16 @@ public class MembershipSubscriptionPaymentsService {
       String pgToken,
       String membershipId,
       String membershipSubscriptionId,
-      String encodedPartnerOrderId,
-      String encodedPartnerUserId) {
+      String encodedPartnerOrderId) {
     byte[] decodedOrderBytes = Base64.getDecoder().decode(encodedPartnerOrderId);
-    byte[] decodedUserBytes = Base64.getDecoder().decode(encodedPartnerUserId);
     String partnerOrderId = new String(decodedOrderBytes);
-    String partnerUserId = new String(decodedUserBytes);
 
+    Kakaopay kakaopay = kakaopayService.findKakaopayByKakaopayOrderId(partnerOrderId);
     MultiValueMap<String, Object> payParams = new LinkedMultiValueMap<>();
-    payParams.add("cid", "TC0ONETIME");
-    payParams.add("tid", kakaoReady.getTid());
+    payParams.add("cid", kakaopay.getKakaopayCid());
+    payParams.add("tid", kakaopay.getKakaopayTid());
     payParams.add("partner_order_id", partnerOrderId);
-    payParams.add("partner_user_id", partnerUserId);
+    payParams.add("partner_user_id", kakaopay.getKakaopayPartnerUserId());
     payParams.add("pg_token", pgToken);
 
     HttpEntity<Map> requestEntity = new HttpEntity<>(payParams, this.getHeaders());
@@ -106,11 +118,9 @@ public class MembershipSubscriptionPaymentsService {
     KakaoPayApproveResponseDto kakaoApprove =
         template.postForObject(url, requestEntity, KakaoPayApproveResponseDto.class);
 
-    MembershipSubscriptionPayments memberSubscriptionPayments =
-        MembershipSubscriptionPayments.create(membershipSubscriptionId, kakaoApprove);
-
+    MembershipSubscription membershipSubscription = membershipSubscriptionService.findByMembershipSubscriptionId(Long.valueOf(membershipSubscriptionId));
     MembershipSubscriptionPayments membershipSubscriptionPayments =
-        membershipSubscriptionPaymentsRepository.save(memberSubscriptionPayments);
+        create(membershipSubscription, kakaoApprove, kakaopay);
 
     MembershipInfoForAssignRequestDto membershipAssignDto =
         MembershipInfoForAssignRequestDto.builder()
@@ -128,5 +138,13 @@ public class MembershipSubscriptionPaymentsService {
     headers.set("Authorization", auth);
     headers.set("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
     return headers;
+  }
+
+  public MembershipSubscriptionPayments create(
+      MembershipSubscription membershipSubscription, KakaoPayApproveResponseDto kakaoApprove, Kakaopay kakaopay) {
+    MembershipSubscriptionPayments memberSubscriptionPayments =
+        MembershipSubscriptionPayments.create(membershipSubscription, kakaoApprove, kakaopay);
+
+    return membershipSubscriptionPaymentsRepository.save(memberSubscriptionPayments);
   }
 }

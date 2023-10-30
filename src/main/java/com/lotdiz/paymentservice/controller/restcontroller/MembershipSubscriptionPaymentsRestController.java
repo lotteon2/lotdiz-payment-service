@@ -1,14 +1,14 @@
 package com.lotdiz.paymentservice.controller.restcontroller;
 
 import com.lotdiz.paymentservice.dto.request.PaymentsInfoForKakoaPayRequestDto;
+import com.lotdiz.paymentservice.dto.response.KakaoPayReadyForMemberResponseDto;
 import com.lotdiz.paymentservice.dto.response.ResultDataResponse;
 import com.lotdiz.paymentservice.service.MembershipSubscriptionPaymentsService;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,35 +22,36 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class MembershipSubscriptionPaymentsRestController {
   private final MembershipSubscriptionPaymentsService membershipSubscriptionPaymentsService;
-  private Logger logger =
-      LoggerFactory.getLogger(MembershipSubscriptionPaymentsRestController.class);
 
   @PostMapping("/membership/payments/ready")
-  public ResultDataResponse<Map<String, Long>> kakaoPayReady(
+  public ResponseEntity<ResultDataResponse<KakaoPayReadyForMemberResponseDto>> kakaoPayReady(
       @RequestBody PaymentsInfoForKakoaPayRequestDto paymentsDto) {
-    Long membershipSubscriptionId = membershipSubscriptionPaymentsService.ready(paymentsDto);
-    Map<String, Long> map = new HashMap<>();
-    map.put("membershipSubscriptionId", membershipSubscriptionId);
+    KakaoPayReadyForMemberResponseDto kakaoPayReadyForMemberDto =
+        membershipSubscriptionPaymentsService.ready(paymentsDto);
 
-    return new ResultDataResponse<>(String.valueOf(HttpStatus.OK.value()), HttpStatus.OK.name(), "카카오페이 준비 요청 성공", map);
+    return ResponseEntity.ok()
+        .body(
+            new ResultDataResponse<>(
+                String.valueOf(HttpStatus.OK.value()),
+                HttpStatus.OK.name(),
+                "카카오 페이 준비 요청 성공",
+                kakaoPayReadyForMemberDto));
   }
 
-  @GetMapping(
-      "/payments/success/{membershipId}/{membershipSubscriptionId}/{encodedPartnerOrderId}/{encodedPartnerUserId}")
-  public ResultDataResponse<Object> kakaoPayApprove(
+  @GetMapping("/payments/success/{membershipId}/{membershipSubscriptionId}/{encodedPartnerOrderId}")
+  public ResponseEntity<ResultDataResponse<Object>> kakaoPayApprove(
       @RequestParam("pg_token") String pgToken,
       @PathVariable("membershipId") String membershipId,
       @PathVariable("membershipSubscriptionId") String membershipSubscriptionId,
       @PathVariable("encodedPartnerOrderId") String encodedPartnerOrderId,
-      @PathVariable("encodedPartnerUserId") String encodedPartnerUserId) {
+      HttpServletResponse response)
+      throws IOException {
     membershipSubscriptionPaymentsService.approve(
-        pgToken,
-        membershipId,
-        membershipSubscriptionId,
-        encodedPartnerOrderId,
-        encodedPartnerUserId);
-
-    return new ResultDataResponse<>(
-        String.valueOf(HttpStatus.OK.value()), HttpStatus.OK.name(), "카카오페이 최종 결제 성공", null);
+        pgToken, membershipId, membershipSubscriptionId, encodedPartnerOrderId);
+    response.sendRedirect("http://localhost:5173");
+    return ResponseEntity.ok()
+        .body(
+            new ResultDataResponse<>(
+                String.valueOf(HttpStatus.OK.value()), HttpStatus.OK.name(), "카카오 결제 완료", null));
   }
 }

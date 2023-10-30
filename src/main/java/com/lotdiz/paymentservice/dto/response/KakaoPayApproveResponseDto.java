@@ -1,6 +1,5 @@
 package com.lotdiz.paymentservice.dto.response;
 
-import com.lotdiz.paymentservice.dto.response.Amount;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
