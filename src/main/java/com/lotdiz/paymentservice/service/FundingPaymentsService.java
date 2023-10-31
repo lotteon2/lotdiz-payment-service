@@ -31,8 +31,8 @@ public class FundingPaymentsService {
   @Value("${my.admin}")
   private String ADMIN_KEY;
 
-  @Value("${endpoint.apigateway-service}")
-  private String APIGATEWAY_SERVICE_URL;
+  @Value("${server.host.front}")
+  private String FRONT_URL;
 
   public KakaoPayReadyResponseDto payReady(KakaoPayReadyRequestDto kakaoPayReadyRequestDto) {
 
@@ -53,9 +53,9 @@ public class FundingPaymentsService {
     // TODO: 서비스 주소로 바꾸기.
     parameters.add(
         "approval_url",
-        String.format("%s/payment-service/payments/approve" + "/" + partnerOrderId + "/" + partnerUserId, APIGATEWAY_SERVICE_URL));
-    parameters.add("cancel_url", String.format("%s/payment-service/payments/cancel", APIGATEWAY_SERVICE_URL));
-    parameters.add("fail_url", String.format("%s/payment-service/payments/fail", APIGATEWAY_SERVICE_URL));
+            FRONT_URL+"/payments/approve" + "/" + partnerOrderId + "/" + partnerUserId);
+    parameters.add("cancel_url", FRONT_URL+"/payments/cancel");
+    parameters.add("fail_url", FRONT_URL+"/payments/fail");
 
     HttpEntity<MultiValueMap<String, String>> requestEntity =
         new HttpEntity<>(parameters, this.getHeaders());
