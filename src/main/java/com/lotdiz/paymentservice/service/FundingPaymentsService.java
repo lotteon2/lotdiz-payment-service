@@ -30,7 +30,6 @@ public class FundingPaymentsService {
 
   @Value("${my.admin}")
   private String ADMIN_KEY;
-
   @Value("${server.host.front}")
   private String FRONT_URL;
 
@@ -73,7 +72,7 @@ public class FundingPaymentsService {
     MultiValueMap<String, String> parameters = new LinkedMultiValueMap<String, String>();
     parameters.add("cid", "TC0ONETIME");
     parameters.add("tid", approveRequestDto.getTid());
-    parameters.add("partner_order_id", approveRequestDto.getPartnerUserId());
+    parameters.add("partner_order_id", approveRequestDto.getPartnerOrderId());
     parameters.add("partner_user_id", approveRequestDto.getPartnerUserId());
     parameters.add("pg_token", approveRequestDto.getPgToken());
 

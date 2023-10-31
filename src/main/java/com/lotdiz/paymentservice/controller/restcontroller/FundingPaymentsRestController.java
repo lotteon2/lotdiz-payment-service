@@ -2,6 +2,7 @@ package com.lotdiz.paymentservice.controller.restcontroller;
 
 import com.lotdiz.paymentservice.dto.request.KakaoPayReadyRequestDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayReadyResponseDto;
+import com.lotdiz.paymentservice.dto.response.ResultDataResponse;
 import com.lotdiz.paymentservice.service.FundingPaymentsService;
 import com.lotdiz.paymentservice.utils.SuccessResponse;
 import java.util.Map;
