@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<img src="/img/payment-kakao.png" onClick="{requestPay()}" alt="Kakao 결제">
+
+<script>
+  function requestPay() {
+    axios.post("api/funding/payments/ready", {
+        partnerOrderId: "Lotdiz_ORDER_10000",
+        partnerUserId: "Lotdiz_USER_1",
+        itemName: "[슈퍼얼리버드] 홍+청무화과 1kg 세트",
+        quantity: 3,
+        totalAmount: 74520,
+        taxFreeAmount: 0,
+    })
+    .then(function (response) {
+      console.log(response.data.next_redirect_pc_url);
+      window.localStorage.setItem("tid", response.data.tid);
+      window.open(response.data.next_redirect_pc_url)
+      // location.href = response.data.next_redirect_pc_url;
+    })
+    .catch(function (error) {
+      console.log(error.data.data);
+      alert(`Error occurred: ${error.message}`);
+    });
+  }
+</script>
+</body>
+</html>

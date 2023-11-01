@@ -1,8 +1,6 @@
 package com.lotdiz.paymentservice.service.client;
 
 import com.lotdiz.paymentservice.dto.request.MembershipInfoForAssignRequestDto;
-import java.lang.reflect.Member;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

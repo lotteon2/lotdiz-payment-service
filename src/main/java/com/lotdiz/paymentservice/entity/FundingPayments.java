@@ -5,8 +5,13 @@ import static javax.persistence.GenerationType.IDENTITY;
 import com.lotdiz.paymentservice.entity.common.BaseEntity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,28 +25,26 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class FundingPayments extends BaseEntity {
-
   @Id
   @GeneratedValue(strategy = IDENTITY)
   @Column(name = "funding_payments_unique_id")
-  private Long membershipSubscriptionPaymentsUniqueId;
+  private Long fundingPaymentsUniqueId;
 
   @Column(name = "funding_id", nullable = false)
-  private Long membershipSubscriptionId;
+  private Long fundingId;
+
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "kakaopay_id")
+  private Kakaopay kakaopay;
 
   @Column(name = "funding_payments_actual_amount", nullable = false)
-  private Long membershipSubscriptionPaymentsActualAmount;
+  private Long fundingPaymentsActualAmount;
 
   @Column(name = "funding_payments_type", nullable = false)
   @Builder.Default
-  private String membershipSubscriptionPaymentsType = "CARD";
+  private String fundingPaymentsType = "CARD";
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "funding_payments_status", nullable = false)
-  private String membershipSubscriptionPaymentsStatus;
-
-  @Column(name = "funding_payments_tid", nullable = false)
-  private String membershipSubscriptionPaymentsTid; // 결제 고유번호
-
-  @Column(name = "funding_payments_cid", nullable = false)
-  private String membershipSubscriptionPaymentsCid; // 가맹점 코드
+  private PaymentsStatus fundingPaymentsStatus;
 }

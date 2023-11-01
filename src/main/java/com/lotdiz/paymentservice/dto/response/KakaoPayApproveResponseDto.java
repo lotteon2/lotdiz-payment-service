@@ -1,6 +1,5 @@
 package com.lotdiz.paymentservice.dto.response;
 
-import com.lotdiz.paymentservice.dto.response.Amount;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -17,7 +16,6 @@ public class KakaoPayApproveResponseDto {
   private String partner_user_id; // 가맹점 회원
   private String payment_method_type; // 결제수단
   private String item_name;
-  private String item_code;
   private Integer quantity;
   private String created_at;
   private String approved_at;
