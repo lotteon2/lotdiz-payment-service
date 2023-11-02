@@ -31,7 +31,6 @@ public class FundingPaymentsService {
 
   @Value("${my.admin}")
   private String ADMIN_KEY;
-
   @Value("${server.host.front}")
   private String FRONT_URL;
 
