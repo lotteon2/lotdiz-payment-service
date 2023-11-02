@@ -30,7 +30,7 @@ public class FundingPayments extends BaseEntity {
   @Column(name = "funding_payments_unique_id")
   private Long fundingPaymentsUniqueId;
 
-  @Column(name = "funding_id", nullable = false)
+  @Column(name = "funding_id", unique = true, nullable = false)
   private Long fundingId;
 
   @OneToOne(fetch = FetchType.LAZY)

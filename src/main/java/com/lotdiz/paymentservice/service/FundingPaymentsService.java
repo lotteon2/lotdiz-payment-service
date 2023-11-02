@@ -2,6 +2,7 @@ package com.lotdiz.paymentservice.service;
 
 import com.lotdiz.paymentservice.dto.request.KakaoPayApproveRequestDto;
 import com.lotdiz.paymentservice.dto.request.KakaoPayReadyRequestDto;
+import com.lotdiz.paymentservice.dto.response.FundingPaymentInfoResponse;
 import com.lotdiz.paymentservice.dto.response.KakaoPayApproveResponseDto;
 import com.lotdiz.paymentservice.dto.response.KakaoPayReadyResponseDto;
 import com.lotdiz.paymentservice.entity.FundingPayments;
@@ -41,6 +42,8 @@ public class FundingPaymentsService {
     String partnerOrderId = prefix + "_ORDER_" + random;
     String partnerUserId = prefix + "_USER_" + random;
 
+    log.info(partnerOrderId + "," + partnerUserId);
+
     MultiValueMap<String, String> parameters = new LinkedMultiValueMap<String, String>();
     parameters.add("cid", "TC0ONETIME");
     parameters.add("partner_order_id", partnerOrderId);
@@ -71,9 +74,13 @@ public class FundingPaymentsService {
   public void payApprove(
       KakaoPayApproveRequestDto approveRequestDto) {
     MultiValueMap<String, String> parameters = new LinkedMultiValueMap<String, String>();
+
+    log.info("approve: " + approveRequestDto.getPartnerUserId());
+    log.info("approve: " + approveRequestDto.getPartnerOrderId());
+
     parameters.add("cid", "TC0ONETIME");
     parameters.add("tid", approveRequestDto.getTid());
-    parameters.add("partner_order_id", approveRequestDto.getPartnerUserId());
+    parameters.add("partner_order_id", approveRequestDto.getPartnerOrderId());
     parameters.add("partner_user_id", approveRequestDto.getPartnerUserId());
     parameters.add("pg_token", approveRequestDto.getPgToken());
 
@@ -106,6 +113,17 @@ public class FundingPaymentsService {
             .fundingPaymentsStatus(PaymentsStatus.COMPLETED)
             .build();
     fundingPaymentsRepository.save(fundingPayments);
+
+  }
+
+  public FundingPaymentInfoResponse getFundingPaymentInfo(Long fundingId){
+    FundingPayments fundingPayments = fundingPaymentsRepository.findByFundingId(fundingId);
+
+    return FundingPaymentInfoResponse.builder()
+            .fundingId(fundingId)
+            .fundingPaymentsActualAmount(fundingPayments.getFundingPaymentsActualAmount())
+            .paymentDate(fundingPayments.getCreatedAt())
+            .build();
 
   }
 
